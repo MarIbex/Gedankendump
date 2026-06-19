@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Gedankendump</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F7F6F3;--bg2:#EEECEA;--bg3:#E5E3DF;
+  --text:#1A1A18;--text2:#6B6A66;--text3:#9E9C98;
+  --bd:rgba(0,0,0,0.12);--bd2:rgba(0,0,0,0.07);
+  --r:10px;--rlg:14px;--rxl:18px;
+  --red:#C0392B;--redbg:#FAECE7;--ok:#1a7a4a;
+  --sb:env(safe-area-inset-bottom,0px);
+  --st:env(safe-area-inset-top,0px);
+  --nav:58px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1A1A18;--bg2:#242422;--bg3:#2C2C2A;
+  --text:#EEECEA;--text2:#9E9C98;--text3:#6B6A66;
+  --bd:rgba(255,255,255,0.12);--bd2:rgba(255,255,255,0.07);
+  --red:#E55B4D;--redbg:#3a1510;--ok:#4ade80;
+}}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+#topbar{padding:calc(var(--st) + .6rem) 1rem .6rem;background:var(--bg);border-bottom:0.5px solid var(--bd2);display:flex;align-items:center;gap:8px;flex-shrink:0}
+#topbar h1{font-size:16px;font-weight:600;flex:1}
+#sync{font-size:11px;color:var(--text3)}
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.875rem .875rem calc(var(--sb) + var(--nav) + .875rem)}
+#nav{position:fixed;bottom:0;left:0;right:0;padding-bottom:var(--sb);background:var(--bg);border-top:0.5px solid var(--bd2);display:flex;z-index:50;height:calc(var(--nav) + var(--sb))}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem .1rem;gap:1px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:9px;font-family:inherit}
+.nb .ni{font-size:19px;line-height:1.1}
+.nb.active{color:var(--text)}
+/* PANELS */
+.panel{display:none}
+.panel.on{display:block}
+#pQ.on{display:grid;gap:0}
+/* CHIPS */
+.tbar{display:flex;flex-wrap:nowrap;gap:6px;margin-bottom:.875rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;scrollbar-width:none}
+.tbar::-webkit-scrollbar{display:none}
+.chip{height:32px;padding:0 14px;border-radius:20px;border:0.5px solid var(--bd);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;font-family:inherit;flex-shrink:0}
+.chip.active{background:var(--text);color:var(--bg);border-color:transparent}
+/* BUTTONS */
+.btn{min-height:44px;padding:0 14px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--bg2);color:var(--text);font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;font-family:inherit;-webkit-user-select:none;user-select:none}
+.btn:active{opacity:.7}
+.btn.pri{background:var(--text);color:var(--bg);border-color:transparent}
+.btn.del{border-color:var(--red);color:var(--red)}
+.btn.del:active{background:var(--redbg)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn.sm{min-height:38px;padding:0 12px;font-size:13px}
+/* INPUTS */
+input,textarea,select{font-family:inherit;font-size:16px;padding:0 12px;height:44px;border-radius:var(--r);border:0.5px solid var(--bd);background:var(--bg2);color:var(--text);width:100%;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--text3);background:var(--bg)}
+textarea{height:84px;padding:10px 12px;resize:none;line-height:1.5}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239E9C98' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+/* LAYOUT */
+.grid{display:grid;gap:10px;margin-bottom:.875rem}
+.row{display:flex;gap:8px}
+.row input,.row select{flex:1;min-width:0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.875rem}
+.sp{flex:1}
+.div{border:none;border-top:0.5px solid var(--bd2);margin:.875rem 0}
+.st{font-size:12px;color:var(--text2);padding:3px 0 5px;min-height:20px}
+.st.err{color:var(--red)}.st.ok{color:var(--ok)}
+.section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+/* QUICK BOX */
+.qbox{background:var(--bg2);border-radius:var(--rxl);padding:1rem;margin-bottom:.875rem}
+.qbox textarea{border:none;background:transparent;font-size:16px;height:80px;padding:0;width:100%}
+.qbox textarea:focus{background:transparent;border-color:transparent;outline:none}
+.qbox-bar{display:flex;gap:7px;align-items:center;margin-top:.75rem;flex-wrap:wrap}
+.qbox-bar select{flex:1;min-width:0;height:38px;font-size:13px}
+/* MAP */
+.mapbox{border:0.5px solid var(--bd2);border-radius:var(--rxl);background:var(--bg2);overflow:auto;-webkit-overflow-scrolling:touch;min-height:240px;max-height:65vh;position:relative;margin-bottom:.5rem}
+.mape{display:flex;flex-direction:column;align-items:center;justify-content:center;height:240px;color:var(--text3);font-size:14px;gap:8px}
+.hint{font-size:11px;color:var(--text3);margin-bottom:.75rem}
+/* SEARCH */
+.srchwrap{position:relative;margin-bottom:.75rem}
+.srchwrap input{padding-left:36px}
+.srchico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.sr-box{border:0.5px solid var(--bd2);border-radius:var(--rlg);background:var(--bg2);overflow:hidden;margin-bottom:.75rem}
+.sr-item{padding:10px 14px;border-bottom:0.5px solid var(--bd2);cursor:pointer}
+.sr-item:active{background:var(--bg3)}
+.sr-item:last-child{border-bottom:none}
+.sr-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.sr-match{font-size:14px;color:var(--text)}
+.sr-match b{font-weight:700}
+/* LOG */
+.logbox{border:0.5px solid var(--bd2);border-radius:var(--rxl);background:var(--bg2);overflow:hidden}
+.logh{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:0.5px solid var(--bd2)}
+.logh span{font-size:13px;color:var(--text2)}
+.logl{max-height:500px;overflow-y:auto}
+.loge{display:grid;grid-template-columns:20px 1fr auto;gap:5px 10px;padding:10px 14px;border-bottom:0.5px solid var(--bd2);align-items:start}
+.loge:last-child{border-bottom:none}
+.logi{font-size:15px}
+.loga{font-size:13px;font-weight:500}
+.logd{font-size:12px;color:var(--text2);margin-top:3px;word-break:break-word}
+.logt{font-size:11px;color:var(--text3);white-space:nowrap}
+.loge.ladd .loga{color:var(--ok)}
+.loge.ledit .loga{color:#854F0B}
+.loge.ldel .loga{color:var(--red)}
+.logempty{padding:2rem;text-align:center;color:var(--text3);font-size:14px}
+/* OVERVIEW */
+.ovgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+@media(min-width:480px){.ovgrid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}}
+.ovc{border:0.5px solid var(--bd);border-radius:var(--rlg);background:var(--bg2);padding:12px;cursor:pointer}
+.ovc:active{background:var(--bg3)}
+.ovt{font-size:14px;font-weight:500;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ovs{display:flex;gap:7px;margin-bottom:6px;flex-wrap:wrap}
+.ovstat{font-size:11px;color:var(--text2)}
+.ovstat b{color:var(--text);font-weight:500}
+.ovstat.todo b{color:var(--red)}
+.ovdots{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px}
+.ovdot{height:18px;padding:0 6px;border-radius:9px;font-size:10px;display:inline-flex;align-items:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ovbar{height:3px;border-radius:2px;background:var(--bg3);overflow:hidden;margin-bottom:5px}
+.ovbf{height:100%;border-radius:2px;background:var(--text3)}
+.ovlast{font-size:10px;color:var(--text3)}
+.ovempty{grid-column:1/-1;text-align:center;padding:3rem;color:var(--text3);font-size:14px}
+/* TODO */
+.td-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem}
+.td-opts select,.td-opts input[type=date]{flex:none;height:38px;font-size:13px}
+.td-toggle{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none;height:38px;white-space:nowrap}
+.td-toggle input{width:auto;height:auto;margin:0}
+.td-list{display:grid;gap:8px;margin-bottom:1rem}
+.td-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border:0.5px solid var(--bd);border-radius:var(--r);background:var(--bg2)}
+.td-item.done{opacity:.4}
+.td-item.done .td-text{text-decoration:line-through;color:var(--text3)}
+.td-cb{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--text3);background:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;margin-top:1px}
+.td-cb.done{background:var(--text);border-color:var(--text);color:var(--bg)}
+.td-body{flex:1;min-width:0}
+.td-text{font-size:14px;color:var(--text);line-height:1.4;word-break:break-word;margin-bottom:5px}
+.td-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.td-prio{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.td-prio.hoch{background:#FAECE7;color:#712B13}
+.td-prio.mittel{background:#E6F1FB;color:#0C447C}
+.td-prio.tief{background:#EAF3DE;color:#27500A}
+@media(prefers-color-scheme:dark){
+  .td-prio.hoch{background:#4A1B0C;color:#F5C4B3}
+  .td-prio.mittel{background:#042C53;color:#B5D4F4}
+  .td-prio.tief{background:#173404;color:#C0DD97}
+}
+.td-badge{font-size:11px;padding:2px 7px;border-radius:4px;background:var(--bg3);color:var(--text2);white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.td-date{font-size:11px;color:var(--text3);white-space:nowrap}
+.td-date.overdue{color:var(--red);font-weight:500}
+.td-actions{display:flex;gap:0;flex-shrink:0}
+.td-icobtn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:4px;line-height:1;font-family:inherit;min-width:38px;min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.td-icobtn:active{background:var(--bg3)}
+.td-icobtn.del:active{background:var(--redbg);color:var(--red)}
+.td-empty{text-align:center;padding:2.5rem;color:var(--text3);font-size:14px}
+.td-sum{font-size:12px;color:var(--text3);padding:3px 0 8px}
+/* OVERLAY - sheet from bottom on mobile */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center}
+.pop{background:var(--bg);border-radius:var(--rxl) var(--rxl) 0 0;padding:1rem 1rem calc(1rem + var(--sb));width:100%;max-width:520px;display:grid;gap:12px;max-height:88vh;overflow-y:auto}
+.pop-handle{width:36px;height:4px;border-radius:2px;background:var(--bd);margin:0 auto -4px}
+.pop h3{font-size:16px;font-weight:600}
+.popbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.pophint{font-size:12px;color:var(--text3)}
+@media(min-width:600px){
+  body{overflow:auto;height:auto}
+  html{height:auto;overflow:auto}
+  #content{overflow:visible;padding:.875rem 1.5rem 2rem}
+  #nav{position:sticky;bottom:0}
+  .ov{align-items:center}
+  .pop{border-radius:var(--rxl);padding:1.5rem}
+  .mapbox{max-height:none}
+  .ovgrid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>Gedankendump</h1>
+  <button id="btnSync" class="btn sm" style="min-height:32px;padding:0 10px;font-size:12px">↻ Sync</button>
+  <span id="sync"></span>
+</div>
+
+<div id="content">
+
+  <!-- SCHNELL -->
+  <div id="pQ" class="panel on">
+    <div class="tbar" id="tbar"></div>
+    <div class="qbox">
+      <textarea id="qin" placeholder="Gedanke, Idee, Erinnerung..."></textarea>
+      <div class="qbox-bar">
+        <select id="bsel"><option value="">— Ast wählen —</option></select>
+        <select id="csel" style="display:none"><option value="">— Ebene 2 —</option></select>
+        <button class="btn sm" id="btnNewThema">+ Thema</button>
+        <button class="btn sm" id="btnNewAst">+ Ast</button>
+        <button class="btn pri sm" id="btnSave">Speichern</button>
+        <button class="btn sm" id="btnMic">🎤 <span id="micLbl">Aufn.</span></button>
+      </div>
+    </div>
+    <div class="st" id="st">Bereit.</div>
+    <div class="srchwrap">
+      <span class="srchico">🔍</span>
+      <input id="searchIn" placeholder="Suche in allen Themen..." />
+    </div>
+    <button id="btnSearchClear" class="btn sm" style="display:none;margin-bottom:.5rem">✕ Suche löschen</button>
+    <div id="searchRes" style="display:none"></div>
+    <div class="mapbox" id="mapbox">
+      <div class="mape" id="mape"><span style="font-size:36px">🧠</span><span>Thema erstellen und loslegen</span></div>
+      <svg id="mm" style="display:none"></svg>
+    </div>
+    <div class="hint">Knoten antippen → bearbeiten oder löschen</div>
+    <hr class="div">
+    <div class="section-title">Export & Backup</div>
+    <div class="bar">
+      <button class="btn sm" id="btnExpJson">⬇ JSON</button>
+      <button class="btn sm" id="btnExpHtml">⬇ HTML</button>
+      <button class="btn sm" id="btnImpJson">⬆ Import</button>
+      <input type="file" id="fileImp" accept=".json" style="display:none">
+    </div>
+    <button class="btn del sm" id="btnDelTopic">🗑 Thema löschen</button>
+  </div>
+
+  <!-- TODO -->
+  <div id="pTD" class="panel">
+    <div class="grid">
+      <div class="row">
+        <input id="tdIn" placeholder="Neue Aufgabe..." />
+        <button class="btn pri sm" id="btnTdAdd">+</button>
+        <button class="btn sm" id="btnTdMic">🎤 <span id="tdMicLbl">Aufn.</span></button>
+      </div>
+      <div class="td-opts">
+        <select id="tdPrio" style="min-width:110px">
+          <option value="mittel">⬤ Mittel</option>
+          <option value="hoch">▲ Hoch</option>
+          <option value="tief">▼ Tief</option>
+        </select>
+        <input type="date" id="tdDate" style="width:auto" />
+        <select id="tdTopic" style="min-width:120px"></select>
+        <select id="tdSort" style="min-width:120px">
+          <option value="created">↕ Erstellt</option>
+          <option value="prio">↕ Priorität</option>
+          <option value="date">↕ Fälligkeit</option>
+        </select>
+        <label class="td-toggle"><input type="checkbox" id="tdFocus"/><span>📅 Heute</span></label>
+        <label class="td-toggle"><input type="checkbox" id="tdShowDone" checked/><span>Erledigte</span></label>
+      </div>
+    </div>
+    <div class="td-list" id="tdList"></div>
+  </div>
+
+  <!-- ÜBERSICHT -->
+  <div id="pOv" class="panel">
+    <div class="ovgrid" id="ovGrid"></div>
+  </div>
+
+  <!-- VERLAUF -->
+  <div id="pLog" class="panel">
+    <div class="logbox">
+      <div class="logh"><span id="logCnt">0 Einträge</span><button class="btn sm del" id="btnClrLog">Löschen</button></div>
+      <div class="logl" id="logList"><div class="logempty">Noch keine Einträge.</div></div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<nav id="nav">
+  <button class="nb active" id="tQ"><span class="ni">✏️</span>Schnell</button>
+  <button class="nb" id="tTD"><span class="ni">☑️</span>ToDo</button>
+  <button class="nb" id="tOv"><span class="ni">⊞</span>Übersicht</button>
+  <button class="nb" id="tLog"><span class="ni">📋</span>Verlauf</button>
+</nav>
+
+<!-- CONFIRM POPUP -->
+<div class="ov" id="popConfirm" style="display:none">
+  <div class="pop">
+    <div class="pop-handle"></div>
+    <h3 id="popConfirmMsg">Wirklich löschen?</h3>
+    <div class="popbtns">
+      <button class="btn" id="btnConfirmNo">Abbrechen</button>
+      <button class="btn del" id="btnConfirmYes">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- THEMA POPUP -->
+<div class="ov" id="popThema" style="display:none">
+  <div class="pop">
+    <div class="pop-handle"></div>
+    <h3>Neues Thema</h3>
+    <input id="inpThema" placeholder="Thema-Name (z.B. Ziele, Karriere)" />
+    <div class="popbtns">
+      <button class="btn" id="btnThemaCancel">Abbrechen</button>
+      <button class="btn pri" id="btnThemaSave">Erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- AST POPUP -->
+<div class="ov" id="popAst" style="display:none">
+  <div class="pop">
+    <div class="pop-handle"></div>
+    <h3>Neuer Ast</h3>
+    <input id="inpAst" placeholder="Ast-Name (z.B. Vermögen, Gesundheit)" />
+    <div class="popbtns">
+      <button class="btn" id="btnAstCancel">Abbrechen</button>
+      <button class="btn pri" id="btnAstSave">Erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- KNOTEN BEARBEITEN POPUP -->
+<div class="ov" id="popEdit" style="display:none">
+  <div class="pop">
+    <div class="pop-handle"></div>
+    <h3 id="popEditTitle">Bearbeiten</h3>
+    <input id="inpEdit" />
+    <div class="pophint" id="popEditHint"></div>
+    <div class="popbtns">
+      <button class="btn del" id="btnEditDel">🗑 Löschen</button>
+      <button class="btn" id="btnEditTodo">☑ ToDo erstellen</button>
+      <button class="btn" id="btnEditCancel">Abbrechen</button>
+      <button class="btn pri" id="btnEditSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- TODO AUS KNOTEN POPUP -->
+<div class="ov" id="popNodeTodo" style="display:none">
+  <div class="pop">
+    <div class="pop-handle"></div>
+    <h3>ToDo erstellen</h3>
+    <div class="pophint" id="popNodeTodoHint"></div>
+    <input id="inpNodeTodo" placeholder="Aufgabe beschreiben..." />
+    <div class="row" style="gap:8px">
+      <select id="selNodeTodoPrio" style="flex:1">
+        <option value="mittel">⬤ Mittel</option>
+        <option value="hoch">▲ Hoch</option>
+        <option value="tief">▼ Tief</option>
+      </select>
+      <input type="date" id="inpNodeTodoDate" style="flex:1" />
+    </div>
+    <div class="popbtns">
+      <button class="btn" id="btnNodeTodoCancel">Abbrechen</button>
+      <button class="btn pri" id="btnNodeTodoSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- TODO BEARBEITEN POPUP -->
+<div class="ov" id="popTdEdit" style="display:none">
+  <div class="pop">
+    <div class="pop-handle"></div>
+    <h3>Aufgabe bearbeiten</h3>
+    <input id="inpTdEdit" />
+    <div class="row" style="gap:8px">
+      <select id="selTdEditPrio" style="flex:1">
+        <option value="hoch">▲ Hoch</option>
+        <option value="mittel">⬤ Mittel</option>
+        <option value="tief">▼ Tief</option>
+      </select>
+      <input type="date" id="inpTdEditDate" style="flex:1" />
+    </div>
+    <select id="selTdEditTopic"></select>
+    <div class="popbtns">
+      <button class="btn del" id="btnTdEditDel">🗑 Löschen</button>
+      <button class="btn" id="btnTdEditCancel">Abbrechen</button>
+      <button class="btn pri" id="btnTdEditSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// KONSTANTEN & FARBEN
+// ═══════════════════════════════════════════════════
+const SB_URL = 'https://tfjncagjfkfjszavcijp.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmam5jYWdqZmtmanN6YXZjaWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODQxODQsImV4cCI6MjA5NjE2MDE4NH0._gw3ozdqLfzsgVPw6gMjXfRBetiuqsRflkLfqTm7tFs';
+const SB_HDR = {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+const SK = 'gdump-v1', LK = 'gdump-log-v1', MAXLOG = 100;
+
+const COLORS = ['teal','purple','coral','amber','blue','green'];
+const CL = {
+  teal:  {l50:'#E1F5EE',l800:'#085041',st:'#0F6E56',d50:'#04342C',d100:'#9FE1CB'},
+  purple:{l50:'#EEEDFE',l800:'#3C3489',st:'#534AB7',d50:'#26215C',d100:'#CECBF6'},
+  coral: {l50:'#FAECE7',l800:'#712B13',st:'#993C1D',d50:'#4A1B0C',d100:'#F5C4B3'},
+  amber: {l50:'#FAEEDA',l800:'#633806',st:'#854F0B',d50:'#412402',d100:'#FAC775'},
+  blue:  {l50:'#E6F1FB',l800:'#0C447C',st:'#185FA5',d50:'#042C53',d100:'#B5D4F4'},
+  green: {l50:'#EAF3DE',l800:'#27500A',st:'#3B6D11',d50:'#173404',d100:'#C0DD97'},
+};
+const PRIO_ORDER = {hoch:0,mittel:1,tief:2};
+const PRIO_LABEL = {hoch:'▲ Hoch',mittel:'⬤ Mittel',tief:'▼ Tief'};
+const LOG_ICONS  = {add:'✚',edit:'✎',del:'✕',br:'⊕',tp:'◉'};
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let db = {topics:{}, todos:[]};
+let log = [];
+let activeTopic = null;
+let nodeMap = {};
+let editCtx = null;
+let nodeTodoCtx = null;
+let tdEditId = null;
+let confirmCb = null;
+let recog = null, isRec = false, recTarget = 'q';
+let saveTimer = null;
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+const G = id => document.getElementById(id);
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const tr  = (s,n) => s && s.length>n ? s.slice(0,n-1)+'…' : (s||'');
+const dk  = () => window.matchMedia('(prefers-color-scheme:dark)').matches;
+const mob = () => window.innerWidth < 600;
+const today = () => new Date().toISOString().slice(0,10);
+const dateStr = ts => new Date(ts).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit'}) + ' ' + new Date(ts).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+const tAgo = ts => {
+  const m=Math.floor((Date.now()-ts)/60000);
+  if(m<1)return'gerade eben';if(m<60)return'vor '+m+' Min.';
+  const h=Math.floor(m/60);if(h<24)return'vor '+h+' Std.';
+  const d=Math.floor(h/24);if(d<7)return'vor '+d+' Tag'+(d===1?'':'en');
+  return new Date(ts).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'2-digit'});
+};
+const setStatus = (msg,cls='') => { G('st').textContent=msg; G('st').className='st '+cls; };
+const getTodos = () => { if(!db.todos) db.todos=[]; return db.todos; };
+const getLabel = n => typeof n==='string' ? n : (n.label||'');
+const toNodeObj = n => typeof n==='string' ? {label:n,children:[]} : (n.children?n:{label:n.label||n,children:[]});
+
+// Migrate old string children to objects
+function migrate(){
+  Object.values(db.topics).forEach(t=>{
+    (t.branches||[]).forEach(b=>{
+      b.children = (b.children||[]).map(toNodeObj);
+      b.children.forEach(ch=>{
+        ch.children = (ch.children||[]).map(toNodeObj);
+        ch.children.forEach(gc=>{
+          gc.children = (gc.children||[]).map(toNodeObj);
+        });
+      });
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════
+function lsGet(k){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null} }
+function lsSave(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch{} }
+
+async function sbLoad(){
+  const r = await fetch(SB_URL+'/rest/v1/gedankendump?id=eq.main&select=data,log', {headers:SB_HDR});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const rows = await r.json();
+  if(rows.length){ db=rows[0].data||{topics:{},todos:[]}; log=rows[0].log||[]; }
+}
+
+async function sbSave(){
+  const body = JSON.stringify({id:'main',data:db,log,updated_at:new Date().toISOString()});
+  const r = await fetch(SB_URL+'/rest/v1/gedankendump',{
+    method:'POST',
+    headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body
+  });
+  if(!r.ok){ const t=await r.text(); throw new Error(t); }
+}
+
+async function load(){
+  G('sync').textContent='Lädt...';
+  try{
+    await sbLoad();
+    lsSave(SK,db); lsSave(LK,log);
+  }catch(e){
+    const d=lsGet(SK); if(d) db=d;
+    const l=lsGet(LK); if(l) log=l;
+    console.warn('Supabase load failed, using local cache:', e.message);
+  }
+  if(!db.todos) db.todos=[];
+  migrate();
+  const keys = Object.keys(db.topics);
+  if(keys.length) activeTopic=keys[0];
+  G('sync').textContent='';
+  renderChips(); renderBsel(); renderMap(); updateTdTopicSelects();
+  setStatus(keys.length ? 'Daten geladen.' : 'Bereit — erstelle dein erstes Thema.');
+}
+
+async function save(){
+  lsSave(SK,db); lsSave(LK,log);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async()=>{
+    G('sync').textContent='⟳';
+    try{ await sbSave(); }
+    catch(e){ console.warn('Supabase save failed:', e.message); }
+    finally{ G('sync').textContent=''; }
+  }, 800);
+}
+
+// ═══════════════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════════════
+function addLog(type, topic, action, detail){
+  log.unshift({ts:Date.now(),type,topic,action,detail});
+  if(log.length>MAXLOG) log=log.slice(0,MAXLOG);
+}
+function renderLog(){
+  G('logCnt').textContent = log.length+' Einträge';
+  const l = G('logList');
+  if(!log.length){ l.innerHTML='<div class="logempty">Noch keine Einträge.</div>'; return; }
+  l.innerHTML = log.map(e=>`
+    <div class="loge l${e.type}">
+      <span class="logi">${LOG_ICONS[e.type]||'•'}</span>
+      <div><div class="loga">${esc(e.action)}</div>${e.detail?`<div class="logd">${esc(e.detail)}</div>`:''}</div>
+      <span class="logt">${dateStr(e.ts)}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════
+function showTab(name){
+  ['Q','TD','Ov','Log'].forEach(t=>{
+    G('t'+t).classList.toggle('active', t===name);
+    const p = G('p'+t);
+    if(p){ p.classList.remove('on'); }
+  });
+  const panel = G('p'+name);
+  if(panel) panel.classList.add('on');
+  if(name==='Log') renderLog();
+  if(name==='Ov')  renderOv();
+  if(name==='TD')  { updateTdTopicSelects(); renderTD(); }
+  stopRec();
+  G('content').scrollTop = 0;
+}
+G('tQ').onclick  = ()=>showTab('Q');
+G('tTD').onclick = ()=>showTab('TD');
+G('tOv').onclick = ()=>showTab('Ov');
+G('tLog').onclick= ()=>showTab('Log');
+
+// ═══════════════════════════════════════════════════
+// CONFIRM POPUP
+// ═══════════════════════════════════════════════════
+function askConfirm(msg, cb){
+  G('popConfirmMsg').textContent = msg;
+  confirmCb = cb;
+  G('popConfirm').style.display = 'flex';
+}
+function closeConfirm(){ G('popConfirm').style.display='none'; confirmCb=null; }
+G('btnConfirmNo').onclick  = closeConfirm;
+G('btnConfirmYes').onclick = ()=>{ const cb=confirmCb; closeConfirm(); if(cb) cb(); };
+G('popConfirm').onclick    = e=>{ if(e.target===G('popConfirm')) closeConfirm(); };
+
+// ═══════════════════════════════════════════════════
+// THEMA
+// ═══════════════════════════════════════════════════
+function openThemaPop(){
+  G('inpThema').value='';
+  G('popThema').style.display='flex';
+  setTimeout(()=>G('inpThema').focus(), 50);
+}
+function closeThemaPop(){ G('popThema').style.display='none'; }
+
+function saveThema(){
+  const name = G('inpThema').value.trim();
+  if(!name) return;
+  if(!db.topics[name]) db.topics[name]={branches:[]};
+  activeTopic = name;
+  addLog('tp', name, 'Thema erstellt', '«'+name+'»');
+  closeThemaPop();
+  save(); renderChips(); renderBsel(); renderMap(); updateTdTopicSelects();
+  setStatus('Thema «'+name+'» erstellt.');
+}
+
+G('btnNewThema').onclick    = openThemaPop;
+G('btnThemaCancel').onclick = closeThemaPop;
+G('btnThemaSave').onclick   = saveThema;
+G('popThema').onclick       = e=>{ if(e.target===G('popThema')) closeThemaPop(); };
+G('inpThema').onkeydown     = e=>{ if(e.key==='Enter') saveThema(); if(e.key==='Escape') closeThemaPop(); };
+
+G('btnDelTopic').onclick = ()=>{
+  if(!activeTopic) return;
+  askConfirm('Thema «'+activeTopic+'» und alle Gedanken löschen?', ()=>{
+    addLog('del', activeTopic, 'Thema gelöscht', '«'+activeTopic+'»');
+    delete db.topics[activeTopic];
+    const keys = Object.keys(db.topics);
+    activeTopic = keys.length ? keys[0] : null;
+    save(); renderChips(); renderBsel(); renderMap(); updateTdTopicSelects();
+    setStatus('Thema gelöscht.');
+  });
+};
+
+// ═══════════════════════════════════════════════════
+// CHIPS (Themen-Leiste)
+// ═══════════════════════════════════════════════════
+function renderChips(){
+  const bar = G('tbar');
+  bar.innerHTML = '';
+  const keys = Object.keys(db.topics);
+  keys.forEach(t=>{
+    const c = document.createElement('button');
+    c.className = 'chip' + (t===activeTopic?' active':'');
+    c.textContent = t;
+    c.onclick = ()=>{ activeTopic=t; renderChips(); renderBsel(); renderMap(); setStatus('Thema: '+t); };
+    bar.appendChild(c);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// AST
+// ═══════════════════════════════════════════════════
+function openAstPop(){
+  if(!activeTopic){ setStatus('Bitte zuerst ein Thema erstellen.','err'); return; }
+  G('inpAst').value='';
+  G('popAst').style.display='flex';
+  setTimeout(()=>G('inpAst').focus(), 50);
+}
+function closeAstPop(){ G('popAst').style.display='none'; }
+
+function saveAst(){
+  const name = G('inpAst').value.trim();
+  if(!name) return;
+  const branches = db.topics[activeTopic].branches;
+  branches.push({label:name, color:COLORS[branches.length%COLORS.length], children:[]});
+  addLog('br', activeTopic, 'Ast erstellt', '«'+name+'»');
+  closeAstPop();
+  save(); renderMap(); renderBsel();
+  G('bsel').value = branches.length-1;
+  setStatus('Ast «'+name+'» erstellt.','ok');
+}
+
+G('btnNewAst').onclick  = openAstPop;
+G('btnAstCancel').onclick = closeAstPop;
+G('btnAstSave').onclick   = saveAst;
+G('popAst').onclick       = e=>{ if(e.target===G('popAst')) closeAstPop(); };
+G('inpAst').onkeydown     = e=>{ if(e.key==='Enter') saveAst(); if(e.key==='Escape') closeAstPop(); };
+
+// ═══════════════════════════════════════════════════
+// BRANCH SELECT + CHILD SELECT
+// ═══════════════════════════════════════════════════
+function renderBsel(){
+  const s = G('bsel');
+  s.innerHTML = '<option value="">— Ast wählen —</option>';
+  if(!activeTopic||!db.topics[activeTopic]) return;
+  db.topics[activeTopic].branches.forEach((b,i)=>{
+    const o = document.createElement('option');
+    o.value=i; o.textContent=b.label;
+    s.appendChild(o);
+  });
+  updateCsel();
+}
+
+function updateCsel(){
+  const cs = G('csel');
+  const bi = parseInt(G('bsel').value);
+  if(isNaN(bi)||!activeTopic||!db.topics[activeTopic]){ cs.style.display='none'; return; }
+  const branch = db.topics[activeTopic].branches[bi];
+  if(!branch||!branch.children||!branch.children.length){ cs.style.display='none'; return; }
+  cs.innerHTML = '<option value="">— Ebene 2 (optional) —</option>';
+  branch.children.forEach((ch,i)=>{
+    const o=document.createElement('option');
+    o.value=i; o.textContent=getLabel(ch);
+    cs.appendChild(o);
+  });
+  cs.style.display='';
+}
+G('bsel').onchange = updateCsel;
+
+// ═══════════════════════════════════════════════════
+// SCHNELL-ADD
+// ═══════════════════════════════════════════════════
+function doAdd(){
+  const val = G('qin').value.trim();
+  if(!val) return;
+  const bi = parseInt(G('bsel').value);
+  if(!activeTopic||isNaN(bi)){ setStatus('Bitte einen Ast wählen.','err'); return; }
+  const branch = db.topics[activeTopic].branches[bi];
+  if(!branch) return;
+  const cs = G('csel');
+  const ci = cs&&cs.style.display!=='none' ? parseInt(cs.value) : NaN;
+  if(!isNaN(ci)&&ci>=0){
+    // Add as grandchild
+    const child = branch.children[ci];
+    if(!child) return;
+    const co = toNodeObj(child);
+    branch.children[ci] = co;
+    if(co.children.length>=8){ setStatus('Max. 8 Unterknoten.','err'); return; }
+    co.children.push({label:val,children:[]});
+    addLog('add', activeTopic, 'Gedanke hinzugefügt', '«'+val+'» → '+branch.label+' → '+getLabel(child));
+  } else {
+    // Add as child
+    if(branch.children.length>=8){ setStatus('Max. 8 Kindknoten pro Ast.','err'); return; }
+    branch.children.push({label:val,children:[]});
+    addLog('add', activeTopic, 'Gedanke hinzugefügt', '«'+val+'» → '+branch.label);
+  }
+  G('qin').value='';
+  save(); renderMap(); updateCsel();
+  setStatus('«'+val+'» gespeichert.','ok');
+}
+G('btnSave').onclick = doAdd;
+G('qin').onkeydown   = e=>{ if(e.key==='Enter') doAdd(); };
+
+// ═══════════════════════════════════════════════════
+// SPEECH — Sprachsteuerung
+// ═══════════════════════════════════════════════════
+
+const SAVE_WORDS   = ['speichern','fertig','ok','bestätigen','sichern','save'];
+const CANCEL_WORDS = ['abbrechen','nochmal','neustart','cancel'];
+const AST_WORDS    = ['ast','ost','asst','unter','bereich','kategorie','gruppe','branch'];
+
+let voiceFinal = '';
+let voiceInterim = '';
+let autoSaveTimer = null;
+
+function initSpeech(){
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return null;
+  const r = new SR();
+  r.lang='de-CH'; r.continuous=true; r.interimResults=true;
+  r.onstart=()=>setStatus('🎤 Sprich — 2 Sek. Pause oder «Speichern» speichert','ok');
+  r.onresult=onSpeechResult;
+  r.onerror=e=>{
+    stopRec();
+    if(e.error==='not-allowed'){
+      G('popConfirmMsg').textContent='Mikrofon nur lokal verfügbar — HTML-Datei direkt in Safari/Chrome öffnen.';
+      confirmCb=null; G('popConfirm').style.display='flex';
+    } else setStatus('Mikrofon: '+e.error,'err');
+  };
+  r.onend=()=>{ if(isRec) r.start(); };
+  return r;
+}
+
+function onSpeechResult(e){
+  let gotFinal=false;
+  for(let i=e.resultIndex;i<e.results.length;i++){
+    if(e.results[i].isFinal){ voiceFinal+=e.results[i][0].transcript+' '; voiceInterim=''; gotFinal=true; }
+    else voiceInterim=e.results[i][0].transcript;
+  }
+  const display=(voiceFinal+voiceInterim).trim();
+  if(recTarget==='q') G('qin').value=display; else G('tdIn').value=display;
+  if(!gotFinal) return;
+  const ft=voiceFinal.trim();
+  if(!ft) return;
+  const ftLow=ft.toLowerCase();
+  const last=ftLow.split(/\s+/).pop();
+
+  // Befehl: Neues Thema [Name]
+  const themaMatch = ftLow.match(/^neues?\s+thema\s+(.+)$/);
+  if(themaMatch){
+    const name = ft.slice(ft.toLowerCase().indexOf(themaMatch[1])).trim();
+    voiceFinal=''; voiceInterim='';
+    if(!db.topics[name]) db.topics[name]={branches:[]};
+    activeTopic=name;
+    addLog('tp',name,'Thema erstellt (Sprache)','«'+name+'»');
+    save(); renderChips(); renderBsel(); renderMap(); updateTdTopicSelects();
+    setStatus('✓ Thema «'+name+'» erstellt.','ok');
+    return;
+  }
+
+  // Befehl: Neuer Ast [Name]
+  const astMatch = ftLow.match(/^neuer?\s+(?:ast|ost)\s+(.+)$/);
+  if(astMatch){
+    if(!activeTopic){ setStatus('Kein Thema aktiv.','err'); voiceFinal=''; return; }
+    const name = ft.slice(ft.toLowerCase().indexOf(astMatch[1])).trim();
+    voiceFinal=''; voiceInterim='';
+    const branches = db.topics[activeTopic].branches;
+    branches.push({label:name, color:COLORS[branches.length%COLORS.length], children:[]});
+    addLog('br',activeTopic,'Ast erstellt (Sprache)','«'+name+'»');
+    save(); renderMap(); renderBsel();
+    setStatus('✓ Ast «'+name+'» erstellt.','ok');
+    return;
+  }
+  if(CANCEL_WORDS.includes(last)){
+    voiceFinal=''; voiceInterim='';
+    G('qin').value=''; G('tdIn').value='';
+    clearTimeout(autoSaveTimer);
+    setStatus('Gelöscht.','err'); return;
+  }
+  if(SAVE_WORDS.includes(last)){
+    clearTimeout(autoSaveTimer);
+    const w=ft.split(/\s+/); w.pop();
+    const clean=w.join(' ').trim();
+    voiceFinal=''; voiceInterim='';
+    doVoiceSave(clean); return;
+  }
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{
+    const t=voiceFinal.trim();
+    voiceFinal=''; voiceInterim='';
+    if(recTarget==='q') G('qin').value=''; else G('tdIn').value='';
+    if(t) doVoiceSave(t);
+  },1500);
+}
+
+function doVoiceSave(text){
+  if(!text||!text.trim()) return;
+  text=text.trim();
+  if(recTarget==='td'){
+    G('tdIn').value=text; addTodo();
+    setStatus('✓ ToDo: «'+text+'»','ok'); return;
+  }
+  const tn=text.normalize('NFC').toLowerCase().trim();
+  const all=[];
+  Object.keys(db.topics).forEach(tk=>{
+    (db.topics[tk].branches||[]).forEach((b,bi)=>{
+      // Äste (Ebene 1)
+      all.push({tk,bi,ci:-1,label:b.label,low:b.label.normalize('NFC').toLowerCase()});
+      // Kindknoten (Ebene 2)
+      (b.children||[]).forEach((ch,ci)=>{
+        const cl=getLabel(ch);
+        all.push({tk,bi,ci,label:cl,low:cl.normalize('NFC').toLowerCase()});
+      });
+    });
+  });
+  all.sort((a,b)=>b.label.length-a.label.length);
+  let found=null;
+  for(const br of all){ if(tn.includes(br.low)){ found=br; break; } }
+  const dbStr=''; // debug entfernt
+  if(!found){ G('qin').value=text; setStatus('Kein Knoten erkannt — manuell wählen.','err'); return; }
+  const note=text.replace(new RegExp(found.label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),'').replace(/^[,\s]+|[,\s]+$/g,'').trim()||text;
+  if(found.tk!==activeTopic){ activeTopic=found.tk; renderChips(); }
+  const branch=db.topics[found.tk].branches[found.bi];
+  if(found.ci>=0){
+    // Kindknoten gefunden → als Unterknoten speichern
+    const child=toNodeObj(branch.children[found.ci]);
+    branch.children[found.ci]=child;
+    child.children.push({label:note,children:[]});
+    addLog('add',found.tk,'Gedanke (Sprache)','«'+note+'» → '+branch.label+' → '+found.label);
+  } else {
+    // Ast gefunden → als Kindknoten speichern
+    branch.children.push({label:note,children:[]});
+    addLog('add',found.tk,'Gedanke (Sprache)','«'+note+'» → '+found.label);
+  }
+  save(); renderMap(); renderBsel();
+  setStatus('✓ «'+note+'» → '+found.label,'ok');
+}
+
+function startRec(target){
+  if(!recog) recog=initSpeech();
+  if(!recog){ setStatus('Spracherkennung nicht verfügbar.','err'); return; }
+  voiceFinal=''; voiceInterim=''; clearTimeout(autoSaveTimer);
+  recTarget=target; isRec=true;
+  (target==='q'?G('btnMic'):G('btnTdMic')).classList.add('del');
+  (target==='q'?G('micLbl'):G('tdMicLbl')).textContent='Stopp';
+  recog.start();
+}
+
+function stopRec(){
+  if(!isRec) return;
+  clearTimeout(autoSaveTimer); isRec=false;
+  G('btnMic').classList.remove('del'); G('micLbl').textContent='Aufn.';
+  G('btnTdMic').classList.remove('del'); G('tdMicLbl').textContent='Aufn.';
+  if(recog){ try{recog.stop();}catch{} }
+  setStatus('Aufnahme gestoppt.');
+}
+
+G('btnMic').onclick   = ()=>isRec&&recTarget==='q'  ? stopRec():startRec('q');
+G('btnTdMic').onclick = ()=>isRec&&recTarget==='td' ? stopRec():startRec('td');
+
+
+// ═══════════════════════════════════════════════════
+// KNOTEN BEARBEITEN
+// ═══════════════════════════════════════════════════
+function openEditPop(ctx){
+  editCtx=ctx;
+  const labels={branch:'Ast',child:'Kindknoten',grand:'Unterknoten (Ebene 3)',great:'Unterknoten (Ebene 4)'};
+  G('popEditTitle').textContent = (labels[ctx.type]||'Knoten')+' bearbeiten';
+  G('inpEdit').value = ctx.label;
+  G('popEditHint').textContent = ctx.type==='branch' ? 'Ast löschen entfernt alle Unterknoten.' : '';
+  G('popEdit').style.display='flex';
+  setTimeout(()=>{ G('inpEdit').focus(); G('inpEdit').select(); }, 50);
+}
+function closeEditPop(){ G('popEdit').style.display='none'; editCtx=null; }
+
+G('btnEditCancel').onclick = closeEditPop;
+G('popEdit').onclick       = e=>{ if(e.target===G('popEdit')) closeEditPop(); };
+G('inpEdit').onkeydown     = e=>{ if(e.key==='Enter') G('btnEditSave').click(); if(e.key==='Escape') closeEditPop(); };
+
+G('btnEditSave').onclick = ()=>{
+  if(!editCtx) return;
+  const val = G('inpEdit').value.trim();
+  if(!val) return;
+  const old = editCtx.label;
+  const bs = db.topics[activeTopic].branches;
+  const {type,bi,ci,gi,ggi} = editCtx;
+  if(type==='branch')      bs[bi].label=val;
+  else if(type==='child')  bs[bi].children[ci].label=val;
+  else if(type==='grand')  bs[bi].children[ci].children[gi].label=val;
+  else if(type==='great')  bs[bi].children[ci].children[gi].children[ggi].label=val;
+  addLog('edit', activeTopic, 'Umbenannt', '«'+old+'» → «'+val+'»');
+  closeEditPop(); save(); renderMap(); renderBsel();
+  setStatus('Gespeichert.','ok');
+};
+
+G('btnEditDel').onclick = ()=>{
+  if(!editCtx) return;
+  const ctx = editCtx;
+  const bs = db.topics[activeTopic].branches;
+  if(ctx.type==='branch'){
+    closeEditPop();
+    askConfirm('Ast «'+ctx.label+'» und alle Unterknoten löschen?', ()=>{
+      addLog('del', activeTopic, 'Ast gelöscht', '«'+ctx.label+'»');
+      bs.splice(ctx.bi,1);
+      save(); renderMap(); renderBsel(); setStatus('Gelöscht.','ok');
+    });
+  } else {
+    let msg='Knoten «'+ctx.label+'» löschen?';
+    closeEditPop();
+    askConfirm(msg, ()=>{
+      addLog('del', activeTopic, 'Knoten gelöscht', '«'+ctx.label+'»');
+      if(ctx.type==='child')      bs[ctx.bi].children.splice(ctx.ci,1);
+      else if(ctx.type==='grand') bs[ctx.bi].children[ctx.ci].children.splice(ctx.gi,1);
+      else if(ctx.type==='great') bs[ctx.bi].children[ctx.ci].children[ctx.gi].children.splice(ctx.ggi,1);
+      save(); renderMap(); updateCsel(); setStatus('Gelöscht.','ok');
+    });
+  }
+};
+
+G('btnEditTodo').onclick = ()=>{
+  if(!editCtx) return;
+  const ctx = editCtx;
+  closeEditPop();
+  G('popNodeTodoHint').textContent = 'Verknüpft mit Knoten «'+ctx.label+'» im Thema «'+activeTopic+'»';
+  G('inpNodeTodo').value='';
+  G('selNodeTodoPrio').value='mittel';
+  G('inpNodeTodoDate').value='';
+  nodeTodoCtx = ctx;
+  G('popNodeTodo').style.display='flex';
+  setTimeout(()=>G('inpNodeTodo').focus(), 50);
+};
+
+// ═══════════════════════════════════════════════════
+// TODO AUS KNOTEN
+// ═══════════════════════════════════════════════════
+function closeNodeTodoPop(){ G('popNodeTodo').style.display='none'; nodeTodoCtx=null; }
+G('btnNodeTodoCancel').onclick = closeNodeTodoPop;
+G('popNodeTodo').onclick       = e=>{ if(e.target===G('popNodeTodo')) closeNodeTodoPop(); };
+G('inpNodeTodo').onkeydown     = e=>{ if(e.key==='Enter') G('btnNodeTodoSave').click(); if(e.key==='Escape') closeNodeTodoPop(); };
+
+G('btnNodeTodoSave').onclick = ()=>{
+  const text = G('inpNodeTodo').value.trim();
+  if(!text){ setStatus('Bitte eine Aufgabe eingeben.','err'); return; }
+  const todo = {
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    text, done:false,
+    prio: G('selNodeTodoPrio').value,
+    date: G('inpNodeTodoDate').value,
+    topic: activeTopic||'',
+    node: nodeTodoCtx ? nodeTodoCtx.label : '',
+    created: Date.now()
+  };
+  getTodos().unshift(todo);
+  addLog('add', activeTopic||'', 'ToDo aus Knoten', '«'+text+'» → «'+(nodeTodoCtx?nodeTodoCtx.label:'')+'»');
+  closeNodeTodoPop();
+  save(); setStatus('ToDo «'+text+'» gespeichert.','ok');
+};
+
+// ═══════════════════════════════════════════════════
+// TODO
+// ═══════════════════════════════════════════════════
+function updateTdTopicSelects(){
+  const keys = Object.keys(db.topics);
+  [G('tdTopic'), G('selTdEditTopic')].forEach(sel=>{
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Kein Thema</option>' + keys.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    if(cur&&keys.includes(cur)) sel.value=cur;
+  });
+}
+
+function addTodo(){
+  const text = G('tdIn').value.trim();
+  if(!text) return;
+  const todo = {
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    text, done:false,
+    prio: G('tdPrio').value,
+    date: G('tdDate').value,
+    topic: G('tdTopic').value,
+    created: Date.now()
+  };
+  getTodos().unshift(todo);
+  G('tdIn').value='';
+  addLog('add', 'ToDo', 'Aufgabe erstellt', '«'+text+'»');
+  save(); renderTD();
+}
+G('btnTdAdd').onclick = addTodo;
+G('tdIn').onkeydown   = e=>{ if(e.key==='Enter') addTodo(); };
+G('tdShowDone').onchange = renderTD;
+G('tdSort').onchange     = renderTD;
+G('tdFocus').onchange    = renderTD;
+
+function renderTD(){
+  const todos = getTodos();
+  const showDone = G('tdShowDone').checked;
+  const sortBy   = G('tdSort').value;
+  const focus    = G('tdFocus').checked;
+  const t0 = today();
+  const done = todos.filter(t=>t.done).length;
+  let vis = showDone ? [...todos] : todos.filter(t=>!t.done);
+  if(focus) vis = vis.filter(t=>!t.done&&t.date&&t.date<=t0);
+  vis.sort((a,b)=>{
+    if(sortBy==='prio'){ const p=(PRIO_ORDER[a.prio]??1)-(PRIO_ORDER[b.prio]??1); if(p!==0)return p; }
+    if(sortBy==='date'){ if(a.date&&b.date)return a.date.localeCompare(b.date); if(a.date)return -1; if(b.date)return 1; }
+    return b.created-a.created;
+  });
+  const list = G('tdList');
+  if(!todos.length){ list.innerHTML='<div class="td-empty">Noch keine Aufgaben.</div>'; return; }
+  list.innerHTML = `<div class="td-sum">${done} von ${todos.length} erledigt${focus?' — Heute-Fokus':(!showDone&&done?' — '+done+' ausgeblendet':'')}</div>`
+    + (!vis.length ? '<div class="td-empty">Keine Aufgaben für diese Ansicht.</div>'
+    : vis.map(t=>{
+        const overdue = t.date&&t.date<t0&&!t.done?' overdue':'';
+        const ds = t.date ? new Date(t.date+'T00:00').toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '';
+        const badge = t.node ? `<span class="td-badge" title="${esc(t.node)}">⬡ ${esc(tr(t.node,12))}</span>`
+                              : (t.topic?`<span class="td-badge">${esc(tr(t.topic,13))}</span>`:'');
+        return `<div class="td-item${t.done?' done':''}">
+          <div class="td-cb${t.done?' done':''}" data-cb="${t.id}">${t.done?'✓':''}</div>
+          <div class="td-body">
+            <div class="td-text">${esc(t.text)}</div>
+            <div class="td-meta">
+              ${badge}
+              <span class="td-prio ${t.prio}">${PRIO_LABEL[t.prio]}</span>
+              ${ds?`<span class="td-date${overdue}">${ds}</span>`:''}
+            </div>
+          </div>
+          <div class="td-actions">
+            <button class="td-icobtn" data-tedit="${t.id}" title="Bearbeiten">✎</button>
+            <button class="td-icobtn del" data-tdel="${t.id}" title="Löschen">×</button>
+          </div>
+        </div>`;
+      }).join(''));
+
+  list.querySelectorAll('[data-cb]').forEach(el=>{
+    el.onclick=()=>{
+      const todo=getTodos().find(t=>t.id===el.dataset.cb);
+      if(todo){ todo.done=!todo.done; addLog('edit','ToDo',todo.done?'Erledigt':'Wieder offen','«'+todo.text+'»'); save(); renderTD(); }
+    };
+  });
+  list.querySelectorAll('[data-tedit]').forEach(el=>{
+    el.onclick=e=>{ e.stopPropagation(); openTdEdit(el.dataset.tedit); };
+  });
+  list.querySelectorAll('[data-tdel]').forEach(el=>{
+    el.onclick=e=>{
+      e.stopPropagation();
+      const todo=getTodos().find(t=>t.id===el.dataset.tdel);
+      if(!todo) return;
+      askConfirm('Aufgabe «'+tr(todo.text,40)+'» löschen?',()=>{
+        db.todos=getTodos().filter(t=>t.id!==el.dataset.tdel);
+        addLog('del','ToDo','Aufgabe gelöscht','«'+todo.text+'»');
+        save(); renderTD(); setStatus('Gelöscht.','ok');
+      });
+    };
+  });
+}
+
+// ToDo Bearbeiten
+function openTdEdit(id){
+  const todo = getTodos().find(t=>t.id===id);
+  if(!todo) return;
+  tdEditId=id;
+  updateTdTopicSelects();
+  G('inpTdEdit').value=todo.text;
+  G('selTdEditPrio').value=todo.prio||'mittel';
+  G('inpTdEditDate').value=todo.date||'';
+  G('selTdEditTopic').value=todo.topic||'';
+  G('popTdEdit').style.display='flex';
+  setTimeout(()=>{ G('inpTdEdit').focus(); G('inpTdEdit').select(); }, 50);
+}
+function closeTdEdit(){ G('popTdEdit').style.display='none'; tdEditId=null; }
+G('btnTdEditCancel').onclick = closeTdEdit;
+G('popTdEdit').onclick       = e=>{ if(e.target===G('popTdEdit')) closeTdEdit(); };
+G('inpTdEdit').onkeydown     = e=>{ if(e.key==='Enter') G('btnTdEditSave').click(); if(e.key==='Escape') closeTdEdit(); };
+
+G('btnTdEditSave').onclick = ()=>{
+  if(!tdEditId) return;
+  const text=G('inpTdEdit').value.trim(); if(!text) return;
+  const todo=getTodos().find(t=>t.id===tdEditId); if(!todo) return;
+  const old=todo.text;
+  todo.text=text; todo.prio=G('selTdEditPrio').value;
+  todo.date=G('inpTdEditDate').value; todo.topic=G('selTdEditTopic').value;
+  addLog('edit','ToDo','Aufgabe bearbeitet','«'+old+'» → «'+text+'»');
+  closeTdEdit(); save(); renderTD(); setStatus('Gespeichert.','ok');
+};
+G('btnTdEditDel').onclick = ()=>{
+  if(!tdEditId) return;
+  const todo=getTodos().find(t=>t.id===tdEditId); if(!todo) return;
+  const id=tdEditId, text=todo.text;
+  closeTdEdit();
+  askConfirm('Aufgabe «'+tr(text,40)+'» löschen?',()=>{
+    db.todos=getTodos().filter(t=>t.id!==id);
+    addLog('del','ToDo','Aufgabe gelöscht','«'+text+'»');
+    save(); renderTD(); setStatus('Gelöscht.','ok');
+  });
+};
+
+// ═══════════════════════════════════════════════════
+// ÜBERSICHT
+// ═══════════════════════════════════════════════════
+function renderOv(){
+  const grid = G('ovGrid');
+  const keys = Object.keys(db.topics);
+  if(!keys.length){ grid.innerHTML='<div class="ovempty">Noch keine Themen vorhanden.</div>'; return; }
+  const maxN = Math.max(...keys.map(t=>{
+    const bs=db.topics[t].branches||[];
+    return bs.reduce((s,b)=>s+1+(b.children||[]).length,0);
+  }),1);
+  const lastA={};
+  log.forEach(e=>{ if(e.topic&&!lastA[e.topic]) lastA[e.topic]=e.ts; });
+  const dark=dk();
+  grid.innerHTML = keys.map(t=>{
+    const bs=db.topics[t].branches||[];
+    const bc=bs.length;
+    const cc=bs.reduce((s,b)=>s+(b.children||[]).length,0);
+    const pct=Math.round(((bc+cc)/maxN)*100);
+    const openTodos=getTodos().filter(td=>td.topic===t&&!td.done).length;
+    const dots=bs.slice(0,4).map(b=>{
+      const c=CL[b.color]||CL.teal;
+      return `<span class="ovdot" style="background:${dark?c.d50:c.l50};color:${dark?c.d100:c.l800};border:0.5px solid ${c.st}">${esc(tr(b.label,10))}</span>`;
+    }).join('')+(bs.length>4?`<span class="ovdot" style="background:var(--bg3);color:var(--text3)">+${bs.length-4}</span>`:'');
+    return `<div class="ovc" data-t="${esc(t)}">
+      <div class="ovt">${esc(t)}</div>
+      <div class="ovs">
+        <span class="ovstat"><b>${bc}</b> Äste</span>
+        <span class="ovstat"><b>${cc}</b> Gedanken</span>
+        ${openTodos?`<span class="ovstat todo"><b>${openTodos}</b> ToDo${openTodos===1?'':'s'}</span>`:''}
+      </div>
+      <div class="ovdots">${dots}</div>
+      <div class="ovbar"><div class="ovbf" style="width:${pct}%"></div></div>
+      <div class="ovlast">Zuletzt: ${lastA[t]?tAgo(lastA[t]):'—'}</div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.ovc').forEach(c=>{
+    c.onclick=()=>{
+      activeTopic=c.dataset.t;
+      renderChips(); renderBsel(); renderMap();
+      showTab('Q');
+      setStatus('Thema «'+activeTopic+'» geöffnet.');
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// SUCHE
+// ═══════════════════════════════════════════════════
+G('searchIn').oninput = doSearch;
+G('btnSearchClear').onclick = ()=>{ G('searchIn').value=''; doSearch(); };
+
+function doSearch(){
+  const q = G('searchIn').value.trim().toLowerCase();
+  const res = G('searchRes');
+  const clr = G('btnSearchClear');
+  if(!q){ res.style.display='none'; clr.style.display='none'; return; }
+  clr.style.display='';
+  const hits=[];
+  Object.keys(db.topics).forEach(t=>{
+    if(t.toLowerCase().includes(q)) hits.push({topic:t,ctx:'Thema',text:t});
+    (db.topics[t].branches||[]).forEach(b=>{
+      if(b.label.toLowerCase().includes(q)) hits.push({topic:t,ctx:'Ast',text:b.label});
+      (b.children||[]).forEach(ch=>{
+        const cl=getLabel(ch);
+        if(cl.toLowerCase().includes(q)) hits.push({topic:t,ctx:b.label,text:cl});
+        ((ch.children)||[]).forEach(gc=>{
+          const gl=getLabel(gc);
+          if(gl.toLowerCase().includes(q)) hits.push({topic:t,ctx:b.label+' › '+cl,text:gl});
+        });
+      });
+    });
+  });
+  const hl = s=>{ const i=s.toLowerCase().indexOf(q); if(i<0)return esc(s); return esc(s.slice(0,i))+'<b>'+esc(s.slice(i,i+q.length))+'</b>'+esc(s.slice(i+q.length)); };
+  if(!hits.length){ res.innerHTML='<div class="sr-box"><div class="sr-item" style="color:var(--text3)">Keine Treffer.</div></div>'; res.style.display='block'; return; }
+  res.innerHTML='<div class="sr-box">'+hits.slice(0,20).map(h=>`
+    <div class="sr-item" data-topic="${esc(h.topic)}">
+      <div class="sr-label">${esc(h.topic)} › ${esc(h.ctx)}</div>
+      <div class="sr-match">${hl(h.text)}</div>
+    </div>`).join('')+(hits.length>20?`<div class="sr-item" style="color:var(--text3);font-size:12px">+${hits.length-20} weitere</div>`:'')+`</div>`;
+  res.style.display='block';
+  res.querySelectorAll('.sr-item[data-topic]').forEach(el=>{
+    el.onclick=()=>{
+      activeTopic=el.dataset.topic;
+      renderChips(); renderBsel(); renderMap();
+      G('searchIn').value=''; doSearch();
+      setStatus('Thema «'+activeTopic+'» geöffnet.');
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════════
+function dlBlob(content, filename, type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+const todayFmt = ()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+
+G('btnExpJson').onclick = ()=>{
+  dlBlob(JSON.stringify({...db,log},null,2), 'gedankendump_'+todayFmt()+'.json', 'application/json');
+  setStatus('JSON heruntergeladen.','ok');
+};
+G('btnExpHtml').onclick = ()=>{
+  dlBlob(document.documentElement.outerHTML, 'gedankendump_'+todayFmt()+'.html', 'text/html');
+  setStatus('HTML heruntergeladen.','ok');
+};
+G('btnImpJson').onclick = ()=>G('fileImp').click();
+G('fileImp').onchange = e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imp=JSON.parse(ev.target.result);
+      const impDb=imp.db||imp;
+      if(!impDb.topics) throw new Error('Kein topics-Feld');
+      Object.keys(impDb.topics).forEach(t=>{
+        if(!db.topics[t]) db.topics[t]=impDb.topics[t];
+        else{ const ex=db.topics[t].branches.map(b=>b.label); impDb.topics[t].branches.forEach(b=>{ if(!ex.includes(b.label)) db.topics[t].branches.push(b); }); }
+      });
+      if(impDb.todos&&Array.isArray(impDb.todos)){
+        const exIds=new Set(getTodos().map(t=>t.id));
+        impDb.todos.forEach(t=>{ if(!exIds.has(t.id)) db.todos.push(t); });
+      }
+      const impLog=imp.log||impDb.log;
+      if(impLog&&Array.isArray(impLog)) log=[...log,...impLog].slice(0,MAXLOG);
+      migrate();
+      const keys=Object.keys(db.topics); if(!activeTopic&&keys.length) activeTopic=keys[0];
+      save(); renderChips(); renderBsel(); renderMap(); updateTdTopicSelects();
+      setStatus('Import erfolgreich.','ok');
+    }catch(err){ setStatus('Import fehlgeschlagen: '+err.message,'err'); }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+};
+
+G('btnClrLog').onclick = ()=>askConfirm('Verlauf löschen?',()=>{ log=[]; save(); renderLog(); setStatus('Verlauf gelöscht.'); });
+
+// ═══════════════════════════════════════════════════
+// RENDER MAP — Sauberer Tree-Layout-Algorithmus
+// ═══════════════════════════════════════════════════
+function renderMap(){
+  nodeMap={};
+  const mmEl=G('mm'), mape=G('mape'), mapbox=G('mapbox');
+  if(!activeTopic||!db.topics[activeTopic]||!db.topics[activeTopic].branches.length){
+    mmEl.style.display='none'; mape.style.display='flex'; mapbox.style.minHeight='240px'; return;
+  }
+  mape.style.display='none'; mmEl.style.display='block';
+
+  const dark=dk(), mobile=mob();
+  const bs=db.topics[activeTopic].branches;
+  const maxDepth=mobile?3:4;
+
+  // Spacing
+  const NODE_H=26, GAP_Y=mobile?8:10, GAP_X=mobile?145:165, BRANCH_GAP=mobile?16:20;
+
+  // Calculate height needed for a subtree
+  function treeH(children, depth){
+    if(!children||!children.length||depth>=maxDepth) return NODE_H;
+    const total = children.reduce((sum,ch,i)=> sum + treeH(ch.children||[], depth+1) + (i>0?GAP_Y:0), 0);
+    return Math.max(NODE_H, total);
+  }
+
+  let nodes=[], edges=[];
+  const CX=0;
+
+  // Center node
+  nodes.push({id:'center', x:CX, y:0, w:mobile?140:160, h:44, lbl:activeTopic, t:'center'});
+
+  const L=bs.slice(0,Math.ceil(bs.length/2));
+  const R=bs.slice(Math.ceil(bs.length/2));
+
+  function placeSide(branches, side){
+    const sg=side==='L'?-1:1;
+    // Calculate total height of all branches including their children
+    const heights=branches.map(b=> treeH(b.children||[], 2));
+    const totalH=heights.reduce((s,h,i)=>s+h+(i>0?BRANCH_GAP:0), 0);
+    let curY=-totalH/2;
+
+    branches.forEach((b,idx)=>{
+      const bi=side==='L'?idx:L.length+idx;
+      const bH=heights[idx];
+      const bY=curY+bH/2;
+      const bx=CX+sg*GAP_X;
+      const cl=CL[b.color]||CL.teal;
+      const bid='br_'+side+'_'+idx;
+
+      nodes.push({id:bid, x:bx, y:bY, w:mobile?118:132, h:34, lbl:b.label, t:'branch', cl});
+      nodeMap[bid]={type:'branch', bi, label:b.label};
+      edges.push({f:'center', t:bid});
+
+      // Children (level 2)
+      const children=b.children||[];
+      if(children.length && maxDepth>=2){
+        const cHeights=children.map(ch=> treeH(ch.children||[], 3));
+        const cTotalH=cHeights.reduce((s,h,i)=>s+h+(i>0?GAP_Y:0),0);
+        let cCurY=bY-cTotalH/2;
+
+        children.forEach((ch,ci)=>{
+          const chH=cHeights[ci];
+          const chY=cCurY+chH/2;
+          const cx=bx+sg*GAP_X;
+          const cid='ch_'+side+'_'+idx+'_'+ci;
+          const clabel=getLabel(ch);
+
+          nodes.push({id:cid, x:cx, y:chY, w:mobile?105:118, h:26, lbl:clabel, t:'child', cl});
+          nodeMap[cid]={type:'child', bi, ci, label:clabel};
+          edges.push({f:bid, t:cid});
+
+          // Grandchildren (level 3)
+          const gchildren=(ch.children)||[];
+          if(gchildren.length && maxDepth>=3){
+            const gTotalH=gchildren.length*(NODE_H+GAP_Y)-GAP_Y;
+            let gCurY=chY-gTotalH/2;
+
+            gchildren.forEach((gc,gi)=>{
+              const gY=gCurY;
+              const gx=cx+sg*GAP_X;
+              const gcid='gc_'+side+'_'+idx+'_'+ci+'_'+gi;
+              const glabel=getLabel(gc);
+
+              nodes.push({id:gcid, x:gx, y:gY, w:mobile?92:105, h:22, lbl:glabel, t:'grand', cl});
+              nodeMap[gcid]={type:'grand', bi, ci, gi, label:glabel};
+              edges.push({f:cid, t:gcid});
+
+              // Great-grandchildren (level 4, desktop only)
+              const ggchildren=(gc.children)||[];
+              if(!mobile && ggchildren.length && maxDepth>=4){
+                const ggTotalH=ggchildren.length*(NODE_H+GAP_Y)-GAP_Y;
+                let ggCurY=gY-ggTotalH/2;
+                ggchildren.forEach((gg,ggi)=>{
+                  const ggY=ggCurY;
+                  const ggx=gx+sg*GAP_X;
+                  const ggcid='gg_'+side+'_'+idx+'_'+ci+'_'+gi+'_'+ggi;
+                  const gglabel=getLabel(gg);
+                  nodes.push({id:ggcid, x:ggx, y:ggY, w:95, h:18, lbl:gglabel, t:'great', cl});
+                  nodeMap[ggcid]={type:'great', bi, ci, gi, ggi, label:gglabel};
+                  edges.push({f:gcid, t:ggcid});
+                  ggCurY+=NODE_H+GAP_Y;
+                });
+              }
+              gCurY+=NODE_H+GAP_Y;
+            });
+          }
+          cCurY+=chH+GAP_Y;
+        });
+      }
+      curY+=bH+BRANCH_GAP;
+    });
+  }
+
+  placeSide(L,'L');
+  placeSide(R,'R');
+
+  // Bounds
+  const pad=18;
+  const xs=nodes.flatMap(n=>[n.x-n.w/2-pad, n.x+n.w/2+pad]);
+  const ys=nodes.flatMap(n=>[n.y-n.h/2-pad, n.y+n.h/2+pad]);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  const vw=maxX-minX, vh=maxY-minY;
+
+  const bg=dark?'#1a1a18':'#EEECEA';
+  const tp=dark?'#EEECEA':'#1A1A18';
+  const ec=dark?'rgba(255,255,255,0.11)':'rgba(0,0,0,0.09)';
+  const cf=dark?'#2C2C2A':'#FFFFFF';
+  const cs=dark?'rgba(255,255,255,0.16)':'rgba(0,0,0,0.13)';
+
+  let se='', sn='';
+
+  edges.forEach(e=>{
+    const f=nodes.find(n=>n.id===e.f), t=nodes.find(n=>n.id===e.t);
+    if(!f||!t) return;
+    const fx=f.x-minX, fy=f.y-minY, tx=t.x-minX, ty=t.y-minY, mx=(fx+tx)/2;
+    se+=`<path d="M${fx},${fy} C${mx},${fy} ${mx},${ty} ${tx},${ty}" fill="none" stroke="${ec}" stroke-width="1.5"/>`;
+  });
+
+  nodes.forEach(n=>{
+    const nx=n.x-minX, ny=n.y-minY, hw=n.w/2, hh=n.h/2;
+    const isClickable=n.t!=='center';
+    const cls=isClickable?` class="mn" style="cursor:pointer"`:'';
+    const did=isClickable?` data-id="${n.id}"`:'';
+    if(n.t==='center'){
+      sn+=`<g><rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="10" fill="${cf}" stroke="${cs}" stroke-width="1"/>
+      <text x="${nx}" y="${ny+5}" text-anchor="middle" font-size="13" font-weight="500" fill="${tp}">${esc(tr(n.lbl,22))}</text></g>`;
+    } else if(n.t==='branch'){
+      const c=n.cl;
+      sn+=`<g${cls}${did}><rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="8" fill="${dark?c.d50:c.l50}" stroke="${c.st}" stroke-width="0.75"/>
+      <text x="${nx}" y="${ny+5}" text-anchor="middle" font-size="12" font-weight="500" fill="${dark?c.d100:c.l800}">${esc(tr(n.lbl,16))}</text>
+      <rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="8" fill="transparent"/></g>`;
+    } else if(n.t==='child'){
+      const c=n.cl;
+      sn+=`<g${cls}${did}><rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="6" fill="none" stroke="${c.st}" stroke-width="0.6" opacity="0.6"/>
+      <text x="${nx}" y="${ny+4}" text-anchor="middle" font-size="11" fill="${dark?c.d100:c.l800}">${esc(tr(n.lbl,17))}</text>
+      <rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="6" fill="transparent"/></g>`;
+    } else if(n.t==='grand'){
+      const c=n.cl;
+      sn+=`<g${cls}${did}><rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="4" fill="none" stroke="${c.st}" stroke-width="0.5" opacity="0.5"/>
+      <text x="${nx}" y="${ny+3}" text-anchor="middle" font-size="10" fill="${dark?c.d100:c.l800}">${esc(tr(n.lbl,17))}</text>
+      <rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="4" fill="transparent"/></g>`;
+    } else if(n.t==='great'){
+      const c=n.cl;
+      sn+=`<g${cls}${did}><rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="3" fill="none" stroke="${c.st}" stroke-width="0.4" opacity="0.4"/>
+      <text x="${nx}" y="${ny+3}" text-anchor="middle" font-size="9" fill="${dark?c.d100:c.l800}">${esc(tr(n.lbl,17))}</text>
+      <rect x="${nx-hw}" y="${ny-hh}" width="${n.w}" height="${n.h}" rx="3" fill="transparent"/></g>`;
+    }
+  });
+
+  mmEl.setAttribute('viewBox',`0 0 ${vw} ${vh}`);
+  mmEl.setAttribute('width','100%');
+  mmEl.setAttribute('height',Math.max(vh,240));
+  mmEl.innerHTML=`<rect width="${vw}" height="${vh}" fill="${bg}"/>`+se+sn;
+  mapbox.style.minHeight=Math.max(vh+20,240)+'px';
+
+  mmEl.querySelectorAll('.mn').forEach(el=>{
+    const ctx=nodeMap[el.dataset.id];
+    el.onclick=()=>{ if(ctx) openEditPop(ctx); };
+    el.onmouseenter=()=>el.style.opacity='.72';
+    el.onmouseleave=()=>el.style.opacity='1';
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════
+G('btnSync').onclick = async()=>{
+  G('btnSync').textContent='↻ ...';
+  G('btnSync').disabled=true;
+  try{
+    await sbLoad();
+    lsSave(SK,db); lsSave(LK,log);
+    if(!db.todos) db.todos=[];
+    migrate();
+    const keys=Object.keys(db.topics);
+    if(keys.length) activeTopic=keys[0];
+    renderChips(); renderBsel(); renderMap(); updateTdTopicSelects(); renderLog();
+    setStatus('✓ Daten synchronisiert.','ok');
+  }catch(e){
+    setStatus('Sync fehlgeschlagen: '+e.message,'err');
+  }
+  G('btnSync').textContent='↻ Sync';
+  G('btnSync').disabled=false;
+};
+load();
+</script>
+</body>
+</html>
